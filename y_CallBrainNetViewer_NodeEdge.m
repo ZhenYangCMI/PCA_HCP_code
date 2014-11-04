@@ -155,7 +155,7 @@ else
     EC.nod.color_threshold=0.1;
 end
 
-EC.msh.alpha=0.8;
+EC.msh.alpha=0.2;
 FLAG.MAP=2;
 FLAG.LF=1;
 

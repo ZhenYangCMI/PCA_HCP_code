@@ -3,7 +3,7 @@ clear
 clc
 
 sessionList={'rfMRI_REST1_RL','rfMRI_REST1_LR', 'rfMRI_REST2_RL', 'rfMRI_REST2_LR'};
-subList=load('/home/data/Projects/HCP/sublist95sub.txt');
+subList=load('/home/data/Projects/Zhen/PCA_HCP/sublist95sub.txt');
 
 norm='norm2';
 numPC=10;
@@ -14,7 +14,7 @@ for j=1:length(sessionList)
     
     session=char(sessionList{j})
     
-    dataDir=['/home/data/Projects/HCP/results/', session, '/'];
+    dataDir=['/home/data/Projects/Zhen/PCA_HCP/results/', session, '/'];
     loadFile=load([dataDir,'/', norm, 'FeatureWin_',session,'.mat'])
     normFeature=loadFile.([norm, 'FeatureWin']);
     numWinPerSession=size(normFeature,1);
@@ -22,8 +22,8 @@ for j=1:length(sessionList)
 end
 
 
-resultDir=['/home/data/Projects/HCP/results/all/'];
-figDir = ['/home/data/Projects/HCP/figs/all/'];
+resultDir=['/home/data/Projects/Zhen/PCA_HCP/results/all/'];
+figDir = ['/home/data/Projects/Zhen/PCA_HCP/figs/poster_figs/'];
 
 session='all';
 
@@ -75,32 +75,37 @@ for i=1:numSub*4
     
 end
 
+durationPosW=prctPosW./transition;
+
 % plot the weights for an exemplar subject
 %color='r','b','g','y','k','c','m', 'r--', 'b--','g--']
-% color=[1 215/255 0; 1 0 1; 0 1 1; 1 0 0; 0 1 0; 0 0 1; 0 0 0;205/255 92/255 92/255;85/255 107/255 47/255; 0 128/255 128/255];
-% for k=1:numSub
-%     sub=k;  % sub <=49;
-%
-%     figure(k)
-%     for j=1:4 % numSession
-%         subplot(2,2,j)
-%         for i=1:10
-%
-%             plot(allW(sub+numSub*(j-1),:,i), 'Color', color(i,:), 'LineWidth', 1)
-%             hold on
-%         end
-%         if mod(j,2)==1
-%             ses='1';
-%         else
-%             ses='2';
-%         end
-%         title(['Session ', num2str(ceil(j/2)), ' Run', ses])
-%         ylim([-60 80])
-% xlabel('Time windows')
-% ylabel('Time-dependent Weights')
-%     end
-%     saveas(figure(k), [figDir, 'sub', num2str(sub), '_weightsTC.jpg'])
-%     close all
+color=[1 215/255 0; 1 0 1; 0 1 1; 1 0 0; 0 1 0; 0 0 1; 0 0 0;205/255 92/255 92/255;85/255 107/255 47/255; 0 128/255 128/255];
+%for k=1:numSub
+%sub=k;  % sub <=95;
+sub=47
+%figure(k)
+
+for j=1:numSession % numSession
+    session=char(sessionList{j})
+    figure(j)
+    for i=1:10
+        
+        plot(allW(sub+numSub*(j-1),:,i), 'Color', color(i,:), 'LineWidth', 2)
+        hold on
+    end
+    if mod(j,2)==1
+        ses='1';
+    else
+        ses='2';
+    end
+    %title(['Session ', num2str(ceil(j/2)), ' Run', ses])
+    ylim([-50 70])
+    %xlabel('Time windows')
+    %ylabel('Time-dependent Weights')
+    set(gca, 'Linewidth',2, 'FontName','Arial', 'fontsize', 32)
+    saveas(figure(j), [figDir, 'sub', num2str(sub), '_', session, '_weightsTC.jpg'])
+end
+close all
 % end
 
 Y=zeros(numPC,1);
@@ -108,7 +113,7 @@ Y=zeros(numPC,1);
 for j=1:numPC
     meanW(j,1)=mean(mean(allW(:,:,j)));
     globalStdW(j,1)=std(std(allW(:,:,j)));
-    pos=reshape(allW(:,:,j), [], 1);
+    pos=reshape(llW(:,:,j), [], 1);
     Y(j,1)= prctile(pos(find(pos>0)), 20);
 end
 
@@ -137,8 +142,8 @@ for i=1:numSub*4
     end
 end
 
-%metricList={'prctPosW', 'avgPosW', 'medianPosW',  'prctSigPosW', 'transition', 'avgSigPosW', 'medianSigPosW', 'timesSigPosW', 'durationSigPosW', 'skewW'}
-metricList={'prctPosW', 'avgPosW', 'medianPosW',  'prctSigPosW', 'avgSigPosW', 'medianSigPosW', 'stdW', 'timesSigPosW', 'durationSigPosW', 'transition', 'skewW'}
+metricList={'prctPosW', 'avgPosW', 'stdW',  'skewW', 'transition', 'durationPosW'}
+%metricList={'prctPosW', 'avgPosW', 'medianPosW',  'prctSigPosW', 'avgSigPosW', 'medianSigPosW', 'stdW', 'timesSigPosW', 'durationSigPosW', 'transition', 'skewW'}
 
 
 
@@ -227,11 +232,12 @@ for m=1:length(metricList)
     figure(2)
     imagesc(ICCREMLAllMeasure)
     colorbar
-    if strcmp(metricName, 'avgPosW')
-        caxis([-1 1])
-    else
-        caxis([-0.8 0.8])
-    end
+    %if strcmp(metricName, 'avgPosW')
+    %   caxis([-1 1])
+    %else
+    caxis([-0.8 0.8])
+    %end
+    set(gca, 'Linewidth',2, 'FontName','Arial', 'fontsize', 32, 'XTick', 1:10, 'YTick', 1:5)
     saveas(figure(2), [figDir, 'ICCREMLbetwSession_allMeasure.jpg'])
 end
 
@@ -242,24 +248,24 @@ end
 %     metricData=eval(metric);
 %     day1=(metricData(1:numSub,:)+metricData(1+numSub:2*numSub, :))/2;
 %     day2=(metricData(1+numSub*2:3*numSub,:)+metricData(1+3*numSub:4*numSub, :))/2;
-%     
+%
 %     allMeasureDay1(:, 1+(i-1)*numPC:i*numPC)=day1;
 %     allMeasureDay2(:, 1+(i-1)*numPC:i*numPC)=day2;
-%     
+%
 % end
 % % save([resultDir, 'allMeasureDay1.txt'],  '-ascii', '-tabs', 'allMeasureDay1')
 % % save([resultDir, 'allMeasureDay2.txt'],  '-ascii', '-tabs', 'allMeasureDay2')
 % %
 % % % load motion
-% % tmp=load('/home/data/Projects/HCP/data/motionRelMeanRMS.mat')
+% % tmp=load('/home/data/Projects/Zhen/PCA_HCP/data/motionRelMeanRMS.mat')
 % % motion=tmp.motion;
 % % motionday1=(motion(:,1)+motion(:,2))/2;
 % % motionday2=(motion(:,3)+motion(:,4))/2;
 % %
 % % % load behavior measure
-% [number,txt,raw]= xlsread('/home/data/Projects/HCP/data/NPHCP_1_15_14.xlsx');
+% [number,txt,raw]= xlsread('/home/data/Projects/Zhen/PCA_HCP/data/NPHCP_1_15_14.xlsx');
 % NP=[number(:, 7:8)]; % flanker is dropped due to extreme high correlation with Processing speed
-% 
+%
 % [r1 p1]=partialcorr([allMeasureDay1(:, 1:2),allMeasureDay1(:, 5:9)], NP(1:95, :), [number(1:95, 14)]);
 % [r2 p2]=partialcorr([allMeasureDay2(:, 1:2),allMeasureDay2(:, 5:9)] , NP(1:95, :), [number(1:95, 15)]);
 % %
